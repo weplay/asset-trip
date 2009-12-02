@@ -11,6 +11,7 @@ Development of Asset Trip was kindly sponsored by Weplay[http://www.weplay.com]
 * Reliable cache busting strategy, even during graceful deploys
 * Develop in app/, deploy to public/
 * Efficient compression of JavaScript and CSS from the YUI Compressor
+* Re-Compression only run when necessary based on file mtimes
 * Fast at runtime. No bundling or File mtime checking slowing down your
   production requests
 * Simple, powerful all-Ruby configuration files
