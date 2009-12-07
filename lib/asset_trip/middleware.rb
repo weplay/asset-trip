@@ -58,6 +58,10 @@ module AssetTrip
       @path ||= AssetTrip.config.resolve_file(asset_type.to_sym, filename)
     end
 
+    def ssl?
+      @env['SERVER_PORT'] = '443'
+    end
+
     def bundled_file?
       path_info.index(BUNDLED_URL_PREFIX) == 0
     end
@@ -114,6 +118,7 @@ module AssetTrip
       asset = AssetTrip.config.assets_hash[filename]
       if asset
         begin
+          asset = asset.ssl_stylesheet if ssl? && asset_type == "stylesheets"
           body = asset.joined_contents
           [200, {
             "Content-Type"   => Rack::Mime.mime_type(File.extname(filename), 'text/plain'),

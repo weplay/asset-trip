@@ -115,5 +115,40 @@ describe AssetTrip::Middleware do
       BODY
     end
     
+    context "when using ssl" do
+      
+      it "retrieves an ssl asset for ssl stylesheets" do
+        stubbed_asset = stub()
+        stubbed_ssl_stylesheet = stub(:joined_contents => "ssl_stylesheet_contents")
+        stubbed_asset.should_receive(:ssl_stylesheet).and_return(stubbed_ssl_stylesheet)
+        AssetTrip.config.assets_hash.stub!(:[] => stubbed_asset)
+        install_config <<-CONFIG
+          css_asset "all" do
+            include "new"
+          end
+        CONFIG
+
+        response = get "/__asset_trip__/bundle/stylesheets/all.css", {}, {'SERVER_PORT' => '443'}
+        response.body.should be_like(<<-BODY)
+        ssl_stylesheet_contents
+        BODY
+      end
+
+      it "does not retrieve an ssl asset for non-stylesheet assets" do
+        stubbed_asset = stub(:joined_contents => "foo")
+        stubbed_asset.should_not_receive(:ssl_stylesheet)
+        AssetTrip.config.assets_hash.stub!(:[] => stubbed_asset)
+        install_config <<-CONFIG
+          js_asset "signup" do
+            include "main"
+            include "signup"
+          end
+        CONFIG
+
+        response = get "/__asset_trip__/bundle/javascripts/signup.js", {}, {'SERVER_PORT' => '443'}
+      end
+      
+    end
+
   end
 end
