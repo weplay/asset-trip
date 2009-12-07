@@ -106,8 +106,11 @@ module AssetTrip
       if asset
         begin
           asset_type = path_parts[3]
-          joined_contents = asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
-          [200, {}, [joined_contents]]
+          body = asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
+          [200, {
+            "Content-Type"   => Rack::Mime.mime_type(File.extname(bundlename), 'text/plain'),
+            "Content-Length" => body.size.to_s
+          }, [body]]
         rescue
           bundle_error
         end
