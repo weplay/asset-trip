@@ -299,6 +299,21 @@ describe AssetTrip::Helper do
         HTML
         session[:at_bundle].should be_false
       end
+      
+      it "generates a link to the bundled javascript when bundling is set to true in session" do
+        session[:at_bundle] = true
+        
+        config = AssetTrip::Config.new do
+          js_asset "foo" do
+            include "first"
+            include "second"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+        javascript_include_asset("foo").should be_like(<<-HTML)
+          <script src="http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
+        HTML
+      end
     end
 
   end
