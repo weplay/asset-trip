@@ -69,4 +69,50 @@ describe AssetTrip::Middleware do
     response = get "/__asset_trip__/stylesheets/new.css"
     response.should be_not_found
   end
+  
+  context "when jit bundling is enabled" do
+    
+    it "returns a 404 when the bundle is not found in the config" do
+      response = get "/__asset_trip__/bundle/stylesheets/doesnotexist.css"
+      response.should be_not_found
+    end
+    
+    it "returns a 500 when the bundle is found, but its files are not on disk" do
+      install_config <<-CONFIG
+        js_asset "signup" do
+          include "notondisk"
+        end
+      CONFIG
+      
+      response = get "/__asset_trip__/bundle/javascripts/signup.js"
+      response.should be_server_error
+    end
+    
+    it "returns 200 when bundle is found in the config" do
+      install_config <<-CONFIG
+        js_asset "signup" do
+          include "main"
+          include "signup"
+        end
+      CONFIG
+      
+      response = get "/__asset_trip__/bundle/javascripts/signup.js"
+      response.should be_ok
+    end
+    
+    it "returns the bundle's contents when the bundle is in the config" do
+      install_config <<-CONFIG
+        js_asset "signup" do
+          include "main"
+          include "signup"
+        end
+      CONFIG
+      
+      response = get "/__asset_trip__/bundle/javascripts/signup.js"
+      response.body.should be_like(<<-BODY)
+      alert("main");
+      alert("signup");
+      BODY
+    end
+  end
 end

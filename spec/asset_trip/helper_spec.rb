@@ -13,6 +13,8 @@ describe AssetTrip::Helper do
   end
 
   let(:request) { stub(:host => "localhost.com", :ssl? => false, :protocol => "http://", :port => 80) }
+  let(:params) { {} }
+  let(:session) { {} }
 
   describe "#javascript_include_asset" do
     it "generates a <script> tag based on the Manifest" do
@@ -177,7 +179,7 @@ describe AssetTrip::Helper do
 
     context "when serving an https request" do
       before do
-        request.stub!(:ssl? => true, :protocol => "https://")
+        request.stub!(:ssl? => true, :protocol => "https://", :port => "443")
       end
 
       it "generates ssl links to the unbundled Stylesheets" do
@@ -192,8 +194,8 @@ describe AssetTrip::Helper do
         AssetTrip.stub!(:config => config)
 
         stylesheet_link_asset("all").should be_like(<<-HTML)
-          <link href="https://localhost.com:80/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
-          <link href="https://localhost.com:80/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="https://localhost.com:443/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="https://localhost.com:443/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
         HTML
       end
 
@@ -209,11 +211,94 @@ describe AssetTrip::Helper do
         AssetTrip.stub!(:config => config)
 
         javascript_include_asset("foo").should be_like(<<-HTML)
-          <script src="https://localhost.com:80/__asset_trip__/javascripts/first.js" type="text/javascript"></script>
-          <script src="https://localhost.com:80/__asset_trip__/javascripts/second.js" type="text/javascript"></script>
+          <script src="https://localhost.com:443/__asset_trip__/javascripts/first.js" type="text/javascript"></script>
+          <script src="https://localhost.com:443/__asset_trip__/javascripts/second.js" type="text/javascript"></script>
         HTML
       end
 
+    end
+
+    context "when jit bundling is enabled for the request" do
+      
+      before(:each) do
+        AssetTrip.stub!(:bundle => false)
+      end
+      
+      let(:params) { {:at_bundle => "true"} }
+      let(:session) { {} }
+      
+      it "generates a link to the bundled javascript" do
+        config = AssetTrip::Config.new do
+          js_asset "foo" do
+            include "first"
+            include "second"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+        javascript_include_asset("foo").should be_like(<<-HTML)
+          <script src="http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
+        HTML
+      end
+      
+      it "generates a link to the bundled stylesheet" do
+        config = AssetTrip::Config.new do
+          css_asset "all" do
+            include "fonts"
+            include "colors"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+
+        stylesheet_link_asset("all").should be_like(<<-HTML)
+          <link href="http://localhost.com:80/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
+        HTML
+      end
+      
+      it "generates a link to bundled ssl styles" do
+        request.stub!(:ssl? => true, :protocol => "https://", :port => "443")
+
+        config = AssetTrip::Config.new do
+          css_asset "all" do
+            include "fonts"
+            include "colors"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+
+        stylesheet_link_asset("all").should be_like(<<-HTML)
+          <link href="https://localhost.com:443/__asset_trip__/bundle/stylesheets/all.ssl.css" media="screen" rel="stylesheet" type="text/css" />
+        HTML
+      end
+      
+      it "sets jit bundling into the session" do
+        config = AssetTrip::Config.new do
+          css_asset "all" do
+            include "fonts"
+            include "colors"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+        stylesheet_link_asset("all")
+        session[:at_bundle].should be
+      end
+      
+      it "can be turned off by passing false in the request" do
+        session[:at_bundle] = true
+        params[:at_bundle] = "false"
+        
+        config = AssetTrip::Config.new do
+          css_asset "all" do
+            include "fonts"
+            include "colors"
+          end
+        end
+        AssetTrip.stub!(:config => config)
+        stylesheet_link_asset("all").should be_like(<<-HTML)
+          <link href="http://localhost.com:80/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="http://localhost.com:80/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
+        HTML
+        session[:at_bundle].should be_false
+      end
     end
 
   end

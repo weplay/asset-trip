@@ -38,7 +38,9 @@ module AssetTrip
     def process
       return forbidden if path_info.include?("..")
 
-      if path.file? && path.readable?
+      if bundled_file?
+        serve_bundle
+      elsif path.file? && path.readable?
         serve_file
       else
         not_found
@@ -55,8 +57,16 @@ module AssetTrip
       @path ||= AssetTrip.config.resolve_file(asset_type.to_sym, filename)
     end
 
+    def bundled_file?
+      path_info.index(URL_PREFIX + "/bundle/") == 0
+    end
+
     def filename
       @filename ||= path_info[("/#{URL_PREFIX}/#{asset_type}".size)..-1]
+    end
+
+    def bundlename
+      @bundlename ||= path_parts.last
     end
 
     def path_info
@@ -89,6 +99,28 @@ module AssetTrip
         "Content-Type"   => Rack::Mime.mime_type(File.extname(@path), 'text/plain'),
         "Content-Length" => size.to_s
       }, body]
+    end
+
+    def serve_bundle
+      asset = AssetTrip.config.assets_hash[bundlename]
+      if asset
+        begin
+          asset_type = path_parts[3]
+          joined_contents = asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
+          [200, {}, [joined_contents]]
+        rescue
+          bundle_error
+        end
+      else
+        not_found
+      end
+    end
+
+    def bundle_error
+      body = "Bundle could not be generated properly\n"
+      [500, {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s},
+       [body]]
     end
 
     def forbidden
