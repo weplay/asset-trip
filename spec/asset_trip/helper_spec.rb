@@ -254,7 +254,7 @@ describe AssetTrip::Helper do
         HTML
       end
       
-      it "generates a link to bundled ssl styles" do
+      it "generates a link to bundled ssl styles without .ssl extension" do
         request.stub!(:ssl? => true, :protocol => "https://", :port => "443")
 
         config = AssetTrip::Config.new do
@@ -266,7 +266,7 @@ describe AssetTrip::Helper do
         AssetTrip.stub!(:config => config)
 
         stylesheet_link_asset("all").should be_like(<<-HTML)
-          <link href="https://localhost.com:443/__asset_trip__/bundle/stylesheets/all.ssl.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="https://localhost.com:443/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
         HTML
       end
       

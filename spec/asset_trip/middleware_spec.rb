@@ -77,7 +77,7 @@ describe AssetTrip::Middleware do
       response.should be_not_found
     end
     
-    it "returns a 500 when the bundle is found, but its files are not on disk" do
+    it "returns a 500 when the bundle is found, but one or more of the bundle's files do not exist" do
       install_config <<-CONFIG
         js_asset "signup" do
           include "notondisk"
@@ -114,5 +114,6 @@ describe AssetTrip::Middleware do
       alert("signup");
       BODY
     end
+    
   end
 end

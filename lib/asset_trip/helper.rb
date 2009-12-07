@@ -37,7 +37,7 @@ module AssetTrip
       if AssetTrip.bundle
         _stylesheet_manifest_url(source)
       elsif _jit_bundle?
-        _jit_asset_url(:stylesheets, _stylesheet_source_with_extension(source))
+        _jit_asset_url(:stylesheets, _source_with_extension(source, ".css"))
       else
         _unbundled_stylesheet_urls(source)
       end
@@ -78,12 +78,11 @@ module AssetTrip
     end
 
     def _stylesheet_manifest_url(source)
-      AssetTrip.manifest.path_for(_stylesheet_source_with_extension(source))
-    end
-
-    def _stylesheet_source_with_extension(source)
       source_with_extension = _source_with_extension(source, ".css")
-      request.ssl? ? source_with_extension.gsub!(/.css$/, ".ssl.css") : source_with_extension
+      if request.ssl? 
+        source_with_extension = source_with_extension.gsub!(/.css$/, ".ssl.css")
+      end
+      AssetTrip.manifest.path_for(source_with_extension)
     end
 
     def _source_with_extension(source, extension)
