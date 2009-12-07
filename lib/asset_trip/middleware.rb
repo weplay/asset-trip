@@ -2,7 +2,8 @@
 module AssetTrip
   class Middleware
     URL_PREFIX = "/__asset_trip__"
-
+    BUNDLED_URL_PREFIX = URL_PREFIX + "/bundle"
+    
     def initialize(app)
       @app = app
     end
@@ -58,15 +59,21 @@ module AssetTrip
     end
 
     def bundled_file?
-      path_info.index(URL_PREFIX + "/bundle/") == 0
+      path_info.index(BUNDLED_URL_PREFIX) == 0
+    end
+    
+    def bundle_contents(asset)
+      asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
     end
 
     def filename
-      @filename ||= path_info[("/#{URL_PREFIX}/#{asset_type}".size)..-1]
-    end
-
-    def bundlename
-      @bundlename ||= path_parts.last
+      @filename ||= begin
+        if bundled_file?
+          path_parts.last
+        else
+          path_info[("/#{URL_PREFIX}/#{asset_type}".size)..-1]
+        end
+      end
     end
 
     def path_info
@@ -74,11 +81,17 @@ module AssetTrip
     end
 
     def asset_type
-      path_parts[2]
+      @asset_type ||= begin
+        if bundled_file?
+          path_parts[3]
+        else
+          path_parts[2]
+        end
+      end
     end
 
     def path_parts
-      path_info.split("/")
+      @path_parts ||= path_info.split("/")
     end
 
     def serve_file
@@ -87,28 +100,27 @@ module AssetTrip
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory. And while
       #   we're at it we also use this as body then.
-      if size = File.size?(@path)
+      if size = File.size?(path)
         body = self
       else
-        body = [File.read(@path)]
+        body = [File.read(path)]
         size = Rack::Utils.bytesize(body.first)
       end
 
       [200, {
-        "Last-Modified"  => File.mtime(@path).httpdate,
-        "Content-Type"   => Rack::Mime.mime_type(File.extname(@path), 'text/plain'),
+        "Last-Modified"  => File.mtime(path).httpdate,
+        "Content-Type"   => Rack::Mime.mime_type(File.extname(path), 'text/plain'),
         "Content-Length" => size.to_s
       }, body]
     end
 
     def serve_bundle
-      asset = AssetTrip.config.assets_hash[bundlename]
+      asset = AssetTrip.config.assets_hash[filename]
       if asset
         begin
-          asset_type = path_parts[3]
-          body = asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
+          body = bundle_contents(asset)
           [200, {
-            "Content-Type"   => Rack::Mime.mime_type(File.extname(bundlename), 'text/plain'),
+            "Content-Type"   => Rack::Mime.mime_type(File.extname(filename), 'text/plain'),
             "Content-Length" => body.size.to_s
           }, [body]]
         rescue
