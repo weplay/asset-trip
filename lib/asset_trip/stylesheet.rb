@@ -9,13 +9,13 @@ module AssetTrip
       SSLStylesheet.new(@config, @name, @files)
     end
 
-  private
-
     def joined_contents
       paths.map do |path|
         url_rewriter(path).rewrite(File.read(path))
       end.join("\n\n")
     end
+
+  private
 
     def compressor
       Compressor.new("css")

@@ -61,10 +61,6 @@ module AssetTrip
     def bundled_file?
       path_info.index(BUNDLED_URL_PREFIX) == 0
     end
-    
-    def bundle_contents(asset)
-      asset.files.map { |f| File.read(AssetTrip.config.resolve_file(asset_type.to_sym, f)) }.join("\n")
-    end
 
     def filename
       @filename ||= begin
@@ -118,7 +114,7 @@ module AssetTrip
       asset = AssetTrip.config.assets_hash[filename]
       if asset
         begin
-          body = bundle_contents(asset)
+          body = asset.joined_contents
           [200, {
             "Content-Type"   => Rack::Mime.mime_type(File.extname(filename), 'text/plain'),
             "Content-Length" => body.size.to_s

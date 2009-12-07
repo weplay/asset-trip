@@ -5,13 +5,13 @@ module AssetTrip
       "#{@name}.js"
     end
 
-  private
-
     def joined_contents
       paths.map do |path|
         File.read(path)
       end.join("\n\n")
     end
+
+  private
 
     def compressor
       Compressor.new("js")
