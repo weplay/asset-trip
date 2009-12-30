@@ -75,6 +75,29 @@ describe AssetTrip::Helper do
     end
   end
 
+  describe "javascript_asset_url" do
+    
+    it "returns the url to the javascript asset" do
+      AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.js" => "884695aafa07bf0c3e1f1fe578dd10d0"))
+      javascript_asset_url("foo").should == "/assets/88/4695aafa0/foo.js"
+    end
+    
+    # use case is for javascript $.getScript(url, callback) which takes a single URL. Callback mechanism
+    # precludes looping over an array of unbundled urls
+    it "generates a single jit bundle url regardless of at_bundle settings" do
+      AssetTrip.stub!(:bundle => false)
+      AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.js" => "884695aafa07bf0c3e1f1fe578dd10d0"))
+      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+    end
+    
+    it "generates a single jit bundle url even when at_bundle is false" do
+      request.stub!(:param => {:at_bundle => "false"})
+      AssetTrip.stub!(:bundle => false)
+      AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.js" => "884695aafa07bf0c3e1f1fe578dd10d0"))
+      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+    end
+  end
+
   describe "#stylesheet_link_asset" do
     it "generates a <style> tag based on the manifest" do
       AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.css" => "884695aafa07bf0c3e1f1fe578dd10d0"))

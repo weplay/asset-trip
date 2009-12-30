@@ -7,6 +7,14 @@ module AssetTrip
       end.join("\n")
     end
 
+    def javascript_asset_url(source)
+      if AssetTrip.bundle
+        AssetTrip.manifest.path_for(_source_with_extension(source, ".js"))
+      else
+        _jit_asset_url(:javascripts, _source_with_extension(source, ".js"))
+      end
+    end
+
     def stylesheet_link_asset(*sources)
       options = sources.extract_options!
 
