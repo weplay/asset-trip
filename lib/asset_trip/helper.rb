@@ -91,7 +91,11 @@ module AssetTrip
 
     def _jit_bundle?
       _set_jit_bundle_session
-      !session[:at_bundle].nil? && session[:at_bundle]
+      if !session[:at_bundle].nil?
+        session[:at_bundle]
+      else
+        true
+      end
     end
     
     def _set_jit_bundle_session
