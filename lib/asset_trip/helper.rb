@@ -6,12 +6,14 @@ module AssetTrip
         javascript_include_tag(javascript)
       end.join("\n")
     end
-
+    
     def javascript_asset_url(source)
       if AssetTrip.bundle
         AssetTrip.manifest.path_for(_source_with_extension(source, ".js"))
-      else
+      elsif _jit_bundle?
         _jit_asset_url(:javascripts, _source_with_extension(source, ".js"))
+      else
+        _unbundled_javascript_urls(source)
       end
     end
 
@@ -38,7 +40,7 @@ module AssetTrip
     end
 
     def _javascripts_for_sources(sources)
-      sources.map { |source| _javascripts_for_source(source) }.flatten
+      sources.map { |source| javascript_asset_url(source) }.flatten
     end
 
     def _stylesheets_for_source(source)
@@ -48,16 +50,6 @@ module AssetTrip
         _jit_asset_url(:stylesheets, _source_with_extension(source, ".css"))
       else
         _unbundled_stylesheet_urls(source)
-      end
-    end
-
-    def _javascripts_for_source(source)
-      if AssetTrip.bundle
-        AssetTrip.manifest.path_for(_source_with_extension(source, ".js"))
-      elsif _jit_bundle?
-        _jit_asset_url(:javascripts, _source_with_extension(source, ".js"))
-      else
-        _unbundled_javascript_urls(source)
       end
     end
 

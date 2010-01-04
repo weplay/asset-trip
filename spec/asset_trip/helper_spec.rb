@@ -82,19 +82,32 @@ describe AssetTrip::Helper do
       javascript_asset_url("foo").should == "/assets/88/4695aafa0/foo.js"
     end
     
-    # use case is for javascript $.getScript(url, callback) which takes a single URL. Callback mechanism
-    # precludes looping over an array of unbundled urls
-    it "generates a single jit bundle url regardless of at_bundle settings" do
-      AssetTrip.stub!(:bundle => false)
-      AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.js" => "884695aafa07bf0c3e1f1fe578dd10d0"))
+    it "generates a single jit bundle url when at_bundle is true" do
+      params[:at_bundle] = "true"
+      
+      config = AssetTrip::Config.new do
+        js_asset "foo" do
+          include "first"
+          include "second"
+        end
+      end
+      AssetTrip.stub!(:bundle => false, :config => config)
+
       javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
     end
     
-    it "generates a single jit bundle url even when at_bundle is false" do
-      request.stub!(:param => {:at_bundle => "false"})
-      AssetTrip.stub!(:bundle => false)
-      AssetTrip.stub!(:manifest => AssetTrip::Manifest.new("foo.js" => "884695aafa07bf0c3e1f1fe578dd10d0"))
-      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+    it "generates an array of bundle urls if at_bundle is false" do
+      params[:at_bundle] = "false"
+      
+      config = AssetTrip::Config.new do
+        js_asset "foo" do
+          include "first"
+          include "second"
+        end
+      end
+      AssetTrip.stub!(:bundle => false, :config => config)
+
+      javascript_asset_url("foo").should == ["http://localhost.com:80/__asset_trip__/javascripts/first.js", "http://localhost.com:80/__asset_trip__/javascripts/second.js"]
     end
   end
 
