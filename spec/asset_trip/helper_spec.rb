@@ -109,6 +109,18 @@ describe AssetTrip::Helper do
 
       javascript_asset_url("foo").should == ["http://localhost.com:80/__asset_trip__/javascripts/first.js", "http://localhost.com:80/__asset_trip__/javascripts/second.js"]
     end
+    
+    it "generates a single jit bundle when at_bundle not specified" do
+      config = AssetTrip::Config.new do
+        js_asset "foo" do
+          include "first"
+          include "second"
+        end
+      end
+      AssetTrip.stub!(:bundle => false, :config => config)
+
+      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+    end
   end
 
   describe "#stylesheet_link_asset" do
