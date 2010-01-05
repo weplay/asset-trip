@@ -70,11 +70,11 @@ module AssetTrip
     end
 
     def _unbundled_asset_url(asset_type, file)
-      "#{request.protocol}#{request.host}:#{request.port}/__asset_trip__/#{asset_type}/#{file}"
+      "/__asset_trip__/#{asset_type}/#{file}"
     end
     
     def _jit_asset_url(asset_type, file)
-      "#{request.protocol}#{request.host}:#{request.port}/__asset_trip__/bundle/#{asset_type}/#{file}"
+      "/__asset_trip__/bundle/#{asset_type}/#{file}"
     end
 
     def _stylesheet_manifest_url(source)

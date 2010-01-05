@@ -93,7 +93,7 @@ describe AssetTrip::Helper do
       end
       AssetTrip.stub!(:bundle => false, :config => config)
 
-      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+      javascript_asset_url("foo").should == "/__asset_trip__/bundle/javascripts/foo.js"
     end
 
     it "generates an array of bundle urls if at_bundle is false" do
@@ -107,7 +107,7 @@ describe AssetTrip::Helper do
       end
       AssetTrip.stub!(:bundle => false, :config => config)
 
-      javascript_asset_url("foo").should == ["http://localhost.com:80/__asset_trip__/javascripts/first.js", "http://localhost.com:80/__asset_trip__/javascripts/second.js"]
+      javascript_asset_url("foo").should == ["/__asset_trip__/javascripts/first.js", "/__asset_trip__/javascripts/second.js"]
     end
     
     it "generates a single jit bundle when at_bundle not specified" do
@@ -119,7 +119,7 @@ describe AssetTrip::Helper do
       end
       AssetTrip.stub!(:bundle => false, :config => config)
 
-      javascript_asset_url("foo").should == "http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js"
+      javascript_asset_url("foo").should == "/__asset_trip__/bundle/javascripts/foo.js"
     end
   end
 
@@ -205,7 +205,7 @@ describe AssetTrip::Helper do
       end
       AssetTrip.stub!(:config => config)
       javascript_include_asset("foo").should be_like(<<-HTML)
-        <script src="http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
+        <script src="/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
       HTML
     end
 
@@ -219,7 +219,7 @@ describe AssetTrip::Helper do
       AssetTrip.stub!(:config => config)
 
       stylesheet_link_asset("all").should be_like(<<-HTML)
-        <link href="http://localhost.com:80/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
       HTML
     end
 
@@ -235,7 +235,7 @@ describe AssetTrip::Helper do
       AssetTrip.stub!(:config => config)
 
       stylesheet_link_asset("all").should be_like(<<-HTML)
-        <link href="https://localhost.com:443/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="/__asset_trip__/bundle/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
       HTML
     end
 
@@ -256,8 +256,8 @@ describe AssetTrip::Helper do
         AssetTrip.stub!(:config => config)
 
         javascript_include_asset("foo").should be_like(<<-HTML)
-          <script src="http://localhost.com:80/__asset_trip__/javascripts/first.js" type="text/javascript"></script>
-          <script src="http://localhost.com:80/__asset_trip__/javascripts/second.js" type="text/javascript"></script>
+          <script src="/__asset_trip__/javascripts/first.js" type="text/javascript"></script>
+          <script src="/__asset_trip__/javascripts/second.js" type="text/javascript"></script>
         HTML
       end
 
@@ -273,8 +273,8 @@ describe AssetTrip::Helper do
         AssetTrip.stub!(:config => config)
 
         stylesheet_link_asset("all").should be_like(<<-HTML)
-          <link href="http://localhost.com:80/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
-          <link href="http://localhost.com:80/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
         HTML
       end
 
@@ -302,8 +302,8 @@ describe AssetTrip::Helper do
         end
         AssetTrip.stub!(:config => config)
         stylesheet_link_asset("all").should be_like(<<-HTML)
-          <link href="http://localhost.com:80/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
-          <link href="http://localhost.com:80/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
+          <link href="/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
         HTML
         session[:at_bundle].should be_false
       end
@@ -321,49 +321,8 @@ describe AssetTrip::Helper do
         end
         AssetTrip.stub!(:config => config)
         javascript_include_asset("foo").should be_like(<<-HTML)
-          <script src="http://localhost.com:80/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
+          <script src="/__asset_trip__/bundle/javascripts/foo.js" type="text/javascript"></script>
         HTML
-      end
-
-      context "when serving an https request" do
-        before do
-          request.stub!(:ssl? => true, :protocol => "https://", :port => "443")
-        end
-
-        it "generates ssl links to the unbundled Stylesheets" do
-          AssetTrip.stub!(:bundle => false)
-
-          config = AssetTrip::Config.new do
-            css_asset "all" do
-              include "fonts"
-              include "colors"
-            end
-          end
-          AssetTrip.stub!(:config => config)
-
-          stylesheet_link_asset("all").should be_like(<<-HTML)
-            <link href="https://localhost.com:443/__asset_trip__/stylesheets/fonts.css" media="screen" rel="stylesheet" type="text/css" />
-            <link href="https://localhost.com:443/__asset_trip__/stylesheets/colors.css" media="screen" rel="stylesheet" type="text/css" />
-          HTML
-        end
-
-        it "generates ssl links to the unbundled Javascripts" do
-          AssetTrip.stub!(:bundle => false)
-
-          config = AssetTrip::Config.new do
-            js_asset "foo" do
-              include "first"
-              include "second"
-            end
-          end
-          AssetTrip.stub!(:config => config)
-
-          javascript_include_asset("foo").should be_like(<<-HTML)
-            <script src="https://localhost.com:443/__asset_trip__/javascripts/first.js" type="text/javascript"></script>
-            <script src="https://localhost.com:443/__asset_trip__/javascripts/second.js" type="text/javascript"></script>
-          HTML
-        end
-
       end
 
     end
