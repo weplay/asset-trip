@@ -35,6 +35,16 @@ module AssetTrip
         fake_asset.utime(opts[:mtime], opts[:mtime]) if opts[:mtime]
       end
 
+      def reset_asset_trip
+        # TODO: Is there a better way to accomodate this concern?
+        AssetTrip.instance_variable_set(:@config, nil)
+        AssetTrip.instance_variable_set(:@manifest, nil)
+      end
+      
+      def load_manifest
+        load manifest_path
+      end
+
     end
   end
 end

@@ -39,4 +39,23 @@ describe AssetTrip::Asset do
       asset.md5sum.should == "237c43254a0799392cac71f795d9250e"
     end
   end
+  
+  describe "#path_md5sum" do
+    it "calculates the MD5 for the path for one file" do
+      asset = AssetTrip::Javascript.new(stub(:resolve_file => "bar/foo.js"), "asset") do
+        include "foo"
+      end
+      asset.path_md5sum.should == Digest::MD5.hexdigest("bar/foo.js")
+    end
+
+    it "calculates the MD5 for the paths for multiple file (using alphabetical order)" do
+      config = stub()
+      config.stub!(:resolve_file).and_return("foo/bar.js", "files/jquery.js")
+      asset = AssetTrip::Javascript.new(config, "asset") do
+        include "foo"
+        include "bar"
+      end
+      asset.path_md5sum.should == Digest::MD5.hexdigest("files/jquery.js:foo/bar.js")
+    end
+  end
 end

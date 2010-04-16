@@ -92,6 +92,7 @@ describe "rake asset_trip:bundle" do
         module AssetTrip
           @manifest = Manifest.new
           @manifest["signup.js"] = "7d6db1efb9e"
+          @manifest.paths["signup.js"] = "5cb592dff4baa2e753279dbe0f75e42a"
         end
       RUBY
     end
@@ -161,12 +162,42 @@ describe "rake asset_trip:bundle" do
           end
         CONFIG
         AssetTrip.bundle!
-
+        
+        reset_asset_trip
+        load_manifest
+        
         asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
         app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
 
         AssetTrip.bundle!
         asset("signup.js").mtime.to_i.should == 5.minutes.ago.to_i
+      end
+    end
+
+    it "writes a new bundle if the package has not expired but the paths have changed" do
+      Time.freeze do
+        install_config <<-CONFIG
+          js_asset "signup" do
+            include "main.js"
+            include "signup.js"
+          end
+        CONFIG
+        AssetTrip.bundle!
+
+        install_config <<-CONFIG
+          js_asset "signup" do
+            include "main.js"
+          end
+        CONFIG
+
+        asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
+        app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
+
+        reset_asset_trip
+        load_manifest
+        
+        AssetTrip.bundle!
+        asset("signup.js").mtime.to_i.should > 5.minutes.ago.to_i
       end
     end
 

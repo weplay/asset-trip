@@ -39,6 +39,10 @@ module AssetTrip
       def assets_path
         fixture_app.join("public", "assets")
       end
+      
+      def manifest_path
+        fixture_app.join("config", "asset_trip", "manifest.rb")
+      end
 
     end
   end

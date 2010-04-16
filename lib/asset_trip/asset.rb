@@ -16,7 +16,10 @@ module AssetTrip
     end
 
     def bundle!
-      FileWriter.new(path).write!(contents) if expired?
+      if expired?
+        puts "Rebundling #{name}" if ENV["VERBOSE"]
+        FileWriter.new(path).write!(contents)
+      end
     end
 
     def contents
@@ -30,6 +33,11 @@ module AssetTrip
       end
     end
     memoize :paths
+
+    def path_md5sum
+      Digest::MD5.hexdigest(paths.sort.join(":"))
+    end
+    memoize :path_md5sum
 
     def md5sum
       if expired?
@@ -47,7 +55,13 @@ module AssetTrip
     end
 
     def expired?
-      ENV["FORCE"] || packaged_files.empty? || generated_at <= last_change_at
+      ENV["FORCE"] || packaged_files.empty? || file_listing_changed? || generated_at <= last_change_at
+    end
+
+    def file_listing_changed?
+      path_md5sum != AssetTrip.manifest.paths[name]
+      rescue AssetTrip::NoManifestError
+        false
     end
 
     def generated_at

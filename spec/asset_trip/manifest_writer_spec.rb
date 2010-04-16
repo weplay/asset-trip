@@ -25,8 +25,17 @@ end
       file_writer = stub
       file_writer.should_receive(:write!).with(/@manifest\["foo.js"\] = "fa9bac2ae2d"/)
       AssetTrip::FileWriter.stub!(:new => file_writer)
-      manifest_writer = AssetTrip::ManifestWriter.new([stub(:asset, :name => "foo.js", :md5sum => "fa9bac2ae2d19ec2942a718253c55862")])
+      manifest_writer = AssetTrip::ManifestWriter.new([stub(:asset, :name => "foo.js", :path_md5sum => "234234", :md5sum => "fa9bac2ae2d19ec2942a718253c55862")])
       manifest_writer.write!
     end
+    
+    it "stores the MD5 for the path of each asset as a value of the paths in the hash" do
+      file_writer = stub
+      file_writer.should_receive(:write!).with(/@manifest.paths\["foo.js"\] = "gt888c2ae2d19ec2942a718253c55f62"/)
+      AssetTrip::FileWriter.stub!(:new => file_writer)
+      manifest_writer = AssetTrip::ManifestWriter.new([stub(:asset, :name => "foo.js", :path_md5sum => "gt888c2ae2d19ec2942a718253c55f62", :md5sum => "fa9bac2ae2d19ec2942a718253c55862")])
+      manifest_writer.write!
+    end
+    
   end
 end

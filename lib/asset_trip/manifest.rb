@@ -3,6 +3,7 @@ module AssetTrip
 
     def initialize(md5sums = {})
       @md5sums = md5sums
+      @md5paths = {}
     end
 
     def path_for(key)
@@ -20,6 +21,10 @@ module AssetTrip
       end
 
       @md5sums[key]
+    end
+    
+    def paths
+      @md5paths
     end
 
     def prune!

@@ -19,6 +19,7 @@ module AssetTrip
 
       @assets.each do |asset|
         source.puts "  @manifest[#{asset.name.inspect}] = #{asset.md5sum.first(11).inspect}"
+        source.puts "  @manifest.paths[#{asset.name.inspect}] = #{asset.path_md5sum.inspect}"
       end
 
       source.puts "end"
