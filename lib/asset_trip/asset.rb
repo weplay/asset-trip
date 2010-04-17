@@ -17,8 +17,9 @@ module AssetTrip
 
     def bundle!
       if expired?
-        puts "Rebundling #{name}" if ENV["VERBOSE"]
+        puts "Rebundling #{name}..." if ENV["VERBOSE"]
         FileWriter.new(path).write!(contents)
+        puts "Finished rebundling #{name}" if ENV["VERBOSE"]
       end
     end
 
