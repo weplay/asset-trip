@@ -17,9 +17,46 @@ describe "rake asset_trip:prune" do
     AssetTrip.instance_variable_set(:@config, nil)
     write_javascript("main.js", 'alert("new.main");')
     AssetTrip.bundle!
-    load fixture_app.join("config", "asset_trip", "manifest.rb")
+    load_manifest
     AssetTrip.prune!
     assets("signup.js").should have(1).item
+  end
+
+
+  describe "removing empty directories" do
+    it "removes empty directories" do
+      install_config <<-CONFIG
+        js_asset "signup" do
+          include "main.js"
+        end
+      CONFIG
+      AssetTrip.bundle!
+      
+      empty_dir = assets_path.join("testing")
+      Dir.mkdir(empty_dir)
+      
+      load_manifest
+      
+      AssetTrip.prune!
+      assets_path.should_not have_directory(empty_dir)
+    end
+    
+    it "removes nested directories that are empty" do
+      install_config <<-CONFIG
+        js_asset "signup" do
+          include "main.js"
+        end
+      CONFIG
+      AssetTrip.bundle!
+
+      require 'fileutils'
+      FileUtils.mkdir_p assets_path.join("testing").join("subdirectory")
+
+      load_manifest
+      
+      AssetTrip.prune!
+      assets_path.should_not have_directory(assets_path.join("testing"))
+    end
   end
 
   it "does not remove assets in the current Manifest" do
@@ -29,7 +66,7 @@ describe "rake asset_trip:prune" do
       end
     CONFIG
     AssetTrip.bundle!
-    load fixture_app.join("config", "asset_trip", "manifest.rb")
+    load_manifest
     AssetTrip.prune!
     assets("signup.js").should have(1).item
   end
@@ -46,7 +83,7 @@ describe "rake asset_trip:prune" do
       f << "blah!"
     end
 
-    load fixture_app.join("config", "asset_trip", "manifest.rb")
+    load_manifest
     AssetTrip.prune!
     assets("blah.jpg").should have(0).items
   end

@@ -38,7 +38,12 @@ module AssetTrip
   end
 
   def self.prune!
+    require "asset_trip/dir_extensions"
     manifest.prune!
+    Dir[AssetTrip.assets_path.join("**", "**")].reverse.each do |dir|
+      next unless File.directory?(dir) && Dir.empty?(dir)
+      Dir.rmdir(dir)
+    end
   end
 
   def self.config
