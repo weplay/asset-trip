@@ -176,7 +176,7 @@ end
       end
     end
 
-    it "writes a new bundle if the package has not expired but the paths have changed" do
+    it "writes a new bundle if the package has not expired but the paths have been removed" do
       Time.freeze do
         install_config <<-CONFIG
           js_asset "signup" do
@@ -194,6 +194,34 @@ end
 
         asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
         app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
+
+        reset_asset_trip
+        load_manifest
+        
+        AssetTrip.bundle!
+        asset("signup.js").mtime.to_i.should > 5.minutes.ago.to_i
+      end
+    end
+    
+    it "writes a new bundle if the package has not expired but the paths are added" do
+      Time.freeze do
+        install_config <<-CONFIG
+          js_asset "signup" do
+            include "main.js"
+          end
+        CONFIG
+        AssetTrip.bundle!
+
+        install_config <<-CONFIG
+          js_asset "signup" do
+            include "main.js"
+            include "signup.js"
+          end
+        CONFIG
+
+        asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
+        app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
+        app_javascript("signup.js").utime(10.minutes.ago, 10.minutes.ago)
 
         reset_asset_trip
         load_manifest

@@ -33,7 +33,7 @@ module AssetTrip
       end
 
       def assets(name)
-        assets_path.glob("**", name)
+        assets_path.glob("**", name).sort_by { |path| File.mtime(path) }.reverse
       end
 
       def assets_path
