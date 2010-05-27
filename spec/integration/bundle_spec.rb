@@ -88,12 +88,14 @@ describe "rake asset_trip:bundle" do
       CONFIG
       AssetTrip.bundle!
 
+      paths_md5 = Digest::MD5.hexdigest(app_javascript('main.js'))
+      
       File.read(fixture_app.join("config", "asset_trip", "manifest.rb")).should be_like(<<-RUBY)
-        module AssetTrip
-          @manifest = Manifest.new
-          @manifest["signup.js"] = "7d6db1efb9e"
-          @manifest.paths["signup.js"] = "5cb592dff4baa2e753279dbe0f75e42a"
-        end
+module AssetTrip
+  @manifest = Manifest.new
+  @manifest["signup.js"] = "7d6db1efb9e"
+  @manifest.paths["signup.js"] = "#{paths_md5}"
+end
       RUBY
     end
 
