@@ -91,7 +91,7 @@ describe "rake asset_trip:bundle" do
       CONFIG
       AssetTrip.bundle!
 
-      paths_md5 = Digest::MD5.hexdigest(app_javascript('main.js'))
+      paths_md5 = Digest::MD5.hexdigest('app/javascripts/main.js')
 
       File.read(fixture_app.join("config", "asset_trip", "manifest.rb")).should be_like(<<-RUBY)
 module AssetTrip

@@ -17,11 +17,11 @@ module AssetTrip
     end
 
     # TODO: Refactor
-    def resolve(file)
+    def resolve(file, opts = {})
+      options = { :full_path => true }.merge(opts)
       raise UnknownAssetError.new("Could not find #{file} in paths: #{@paths.inspect}") if file.nil?
-
       file_paths = @paths.map do |path|
-        path.join(file).expand_path
+        options[:full_path] ? path.join(file).expand_path : path.join(file)
       end
 
       result = file_paths.detect do |file_path|

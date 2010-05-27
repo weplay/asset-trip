@@ -36,7 +36,8 @@ module AssetTrip
     memoize :paths
 
     def path_md5sum
-      Digest::MD5.hexdigest(paths.sort.join(":"))
+      relative_paths = files.map { |file| @config.resolve_file(asset_type, file, :full_path => false) }
+      Digest::MD5.hexdigest(relative_paths.sort.join(":"))
     end
     memoize :path_md5sum
 

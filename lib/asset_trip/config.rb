@@ -26,8 +26,8 @@ module AssetTrip
       ManifestWriter.new(assets).write!
     end
 
-    def resolve_file(asset_type, file)
-      @load_paths[asset_type].resolve(file)
+    def resolve_file(asset_type, file, opts = {})
+      @load_paths[asset_type].resolve(file, opts)
     end
 
     def assets
