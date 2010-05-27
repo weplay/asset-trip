@@ -51,6 +51,8 @@ describe "rake asset_trip:bundle" do
         end
       CONFIG
       AssetTrip.bundle!
+
+      load_manifest
       AssetTrip.bundle!
       assets("signup.js").should have(1).item
     end
@@ -64,6 +66,7 @@ describe "rake asset_trip:bundle" do
       AssetTrip.bundle!
       AssetTrip.instance_variable_set(:@config, nil)
       write_javascript("main.js", 'alert("new.main");')
+      load_manifest
       AssetTrip.bundle!
       assets("signup.js").should have(2).items
     end
@@ -89,7 +92,7 @@ describe "rake asset_trip:bundle" do
       AssetTrip.bundle!
 
       paths_md5 = Digest::MD5.hexdigest(app_javascript('main.js'))
-      
+
       File.read(fixture_app.join("config", "asset_trip", "manifest.rb")).should be_like(<<-RUBY)
 module AssetTrip
   @manifest = Manifest.new
@@ -164,10 +167,10 @@ end
           end
         CONFIG
         AssetTrip.bundle!
-        
+
         reset_asset_trip
         load_manifest
-        
+
         asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
         app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
 
@@ -197,35 +200,7 @@ end
 
         reset_asset_trip
         load_manifest
-        
-        AssetTrip.bundle!
-        asset("signup.js").mtime.to_i.should > 5.minutes.ago.to_i
-      end
-    end
-    
-    it "writes a new bundle if the package has not expired but the paths are added" do
-      Time.freeze do
-        install_config <<-CONFIG
-          js_asset "signup" do
-            include "main.js"
-          end
-        CONFIG
-        AssetTrip.bundle!
 
-        install_config <<-CONFIG
-          js_asset "signup" do
-            include "main.js"
-            include "signup.js"
-          end
-        CONFIG
-
-        asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
-        app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
-        app_javascript("signup.js").utime(10.minutes.ago, 10.minutes.ago)
-
-        reset_asset_trip
-        load_manifest
-        
         AssetTrip.bundle!
         asset("signup.js").mtime.to_i.should > 5.minutes.ago.to_i
       end
@@ -262,6 +237,8 @@ end
         asset("signup.js").utime(5.minutes.ago, 5.minutes.ago)
         app_javascript("main.js").utime(10.minutes.ago, 10.minutes.ago)
         create_asset("46/123431bdc/signup.js", :mtime => 15.minutes.ago)
+
+        load_manifest
 
         AssetTrip.bundle!
         assets("signup.js").map { |asset|

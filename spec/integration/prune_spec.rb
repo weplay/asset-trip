@@ -16,6 +16,7 @@ describe "rake asset_trip:prune" do
     AssetTrip.bundle!
     AssetTrip.instance_variable_set(:@config, nil)
     write_javascript("main.js", 'alert("new.main");')
+    load_manifest
     AssetTrip.bundle!
     load_manifest
     AssetTrip.prune!

@@ -61,8 +61,6 @@ module AssetTrip
 
     def file_listing_changed?
       path_md5sum != AssetTrip.manifest.paths[name]
-      rescue AssetTrip::NoManifestError
-        false
     end
 
     def generated_at
