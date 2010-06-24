@@ -4,17 +4,18 @@ module AssetTrip
   class Asset
     extend Memoizable
 
-    attr_reader :files
+    attr_reader :asset_files
 
-    def initialize(config, name, files = [], &block)
+    def initialize(config, name, filenames = [], asset_files = [], &block)
       @config = config
       @name = name
-      @files = files
+      @asset_files = asset_files
+      @asset_files.concat(filenames.map{ |f| AssetFile.new(self, f) })
 
       instance_eval(&block) if block_given?
-      raise AssetTrip::InvalidAssetError, "#{asset_type.to_s.singularize} asset '#{name}' does not contain any files" if @files.empty?
+      raise AssetTrip::InvalidAssetError, "#{asset_type.to_s.singularize} asset '#{name}' does not contain any files" if @asset_files.empty?
     end
-
+    
     def bundle!
       if expired?
         puts "Rebundling #{name}..." if ENV["VERBOSE"]
@@ -29,14 +30,14 @@ module AssetTrip
     memoize :contents
 
     def paths
-      files.map do |file|
-        @config.resolve_file(asset_type, file)
+      asset_files.map do |file|
+        file.path
       end
     end
     memoize :paths
 
     def path_md5sum
-      relative_paths = files.map { |file| @config.resolve_file(asset_type, file, :full_path => false) }
+      relative_paths = asset_files.map { |file| @config.resolve_file(asset_type, file.filename, :full_path => false) }
       Digest::MD5.hexdigest(relative_paths.sort.join(":"))
     end
     memoize :path_md5sum
@@ -49,9 +50,13 @@ module AssetTrip
       end
     end
     memoize :md5sum
+    
+    def resolve_path(filename)
+      @config.resolve_file(asset_type, filename)
+    end
 
   private
-
+      
     def last_package
       packaged_files.sort_by { |path| File.mtime(path) }.last
     end
@@ -84,9 +89,9 @@ module AssetTrip
       @mtimes ||= paths.map { |path| File.mtime(path) }.sort
     end
 
-    def include(name)
+    def include(name, options = {})
       name += extension unless name.ends_with?(extension)
-      files << name
+      asset_files << AssetFile.new(self, name, options)
     end
 
     def path

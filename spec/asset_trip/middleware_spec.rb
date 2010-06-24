@@ -114,6 +114,31 @@ describe AssetTrip::Middleware do
       alert("signup");
       BODY
     end
+
+    it "allows the use of @media types when bundling" do
+      install_config <<-CONFIG
+        css_asset "signup" do
+          with_options :media_type => 'print' do |print|
+            print.include 'new'
+          end
+        end
+      CONFIG
+      write_stylesheet("new.css", <<-STYLESHEET)
+        /* Comment */
+        .foo {
+          font-weight: bold;
+        }
+      STYLESHEET
+      response = get "/__asset_trip__/bundle/stylesheets/signup.css"
+      response.body.should be_like(<<-OUTPUT)
+@media print {
+      /* Comment */
+      .foo {
+        font-weight: bold;
+      }
+}
+      OUTPUT
+    end
     
     context "when using ssl" do
       

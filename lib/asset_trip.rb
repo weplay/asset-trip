@@ -2,6 +2,7 @@ require "active_support"
 
 module AssetTrip
   autoload :Asset, "asset_trip/asset"
+  autoload :AssetFile, "asset_trip/asset_file"
   autoload :Compressor, "asset_trip/compressor"
   autoload :Config, "asset_trip/config"
   autoload :FileWriter, "asset_trip/file_writer"

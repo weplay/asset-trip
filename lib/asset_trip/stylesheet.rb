@@ -1,17 +1,17 @@
 module AssetTrip
   class Stylesheet < Asset
-
+    EMPTY_STRING = ''.freeze
     def name
       "#{@name}.css"
     end
 
     def ssl_stylesheet
-      SSLStylesheet.new(@config, @name, @files)
+      SSLStylesheet.new(@config, @name, [], @asset_files.map{ |f| f.clone })
     end
 
     def joined_contents
-      paths.map do |path|
-        url_rewriter(path).rewrite(File.read(path))
+      @asset_files.map do |file|
+        preamble(file) + url_rewriter(file.path).rewrite(File.read(file.path)) + postamble(file)
       end.join("\n\n")
     end
 
@@ -29,6 +29,22 @@ module AssetTrip
         UrlRewriter.new(url_scheme, public_path)
       else
         UrlRewriter.new(url_scheme)
+      end
+    end
+    
+    def preamble(asset_file)
+      if asset_file.specifies_media_type?
+        "@media #{asset_file.media_type} {\n"
+      else
+        EMPTY_STRING
+      end
+    end
+
+    def postamble(asset_file)
+      if asset_file.specifies_media_type?
+        "\n}"
+      else
+        EMPTY_STRING
       end
     end
 

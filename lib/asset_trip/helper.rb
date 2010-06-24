@@ -56,7 +56,7 @@ module AssetTrip
     def _unbundled_stylesheet_urls(source)
       asset = AssetTrip.config.assets_hash[_source_with_extension(source, ".css")]
 
-      asset.files.map do |file|
+      asset.asset_files.map do |file|
         _unbundled_asset_url(:stylesheets, file)
       end
     end
@@ -64,17 +64,17 @@ module AssetTrip
     def _unbundled_javascript_urls(source)
       asset = AssetTrip.config.assets_hash[_source_with_extension(source, ".js")]
 
-      asset.files.map do |file|
+      asset.asset_files.map do |file|
         _unbundled_asset_url(:javascripts, file)
       end
     end
 
     def _unbundled_asset_url(asset_type, file)
-      "/__asset_trip__/#{asset_type}/#{file}"
+      "/__asset_trip__/#{asset_type}/#{file.filename}"
     end
     
-    def _jit_asset_url(asset_type, file)
-      "/__asset_trip__/bundle/#{asset_type}/#{file}"
+    def _jit_asset_url(asset_type, filename)
+      "/__asset_trip__/bundle/#{asset_type}/#{filename}"
     end
 
     def _stylesheet_manifest_url(source)

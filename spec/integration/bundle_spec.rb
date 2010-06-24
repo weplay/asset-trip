@@ -43,6 +43,36 @@ describe "rake asset_trip:bundle" do
       asset("signup.js").should have_contents('alert("main")')
       asset("signup.js").should have_contents('alert("signup")')
     end
+    
+    it "includes @media tags when media type is specified" do
+      install_config <<-CONFIG
+        css_asset "signup" do
+          include "new", :media_type => 'print'
+        end
+      CONFIG
+      write_stylesheet("new.css", <<-STYLESHEET)
+        .foo { background: url(/foo.jpg) }
+      STYLESHEET
+      AssetTrip.bundle!
+      asset("signup.css").should have_contents('.foo { background: url(/foo.jpg) }')
+      asset("signup.css").should have_contents('@media print {')
+    end
+    
+    it "can use with_options to specify @media tags" do
+      install_config <<-CONFIG
+        css_asset "signup" do
+          with_options :media_type => :print do |print|
+            print.include "new"
+          end
+        end
+      CONFIG
+      write_stylesheet("new.css", <<-STYLESHEET)
+        .foo { background: url(/foo.jpg) }
+      STYLESHEET
+      AssetTrip.bundle!
+      asset("signup.css").should have_contents('.foo { background: url(/foo.jpg) }')
+      asset("signup.css").should have_contents('@media print {')
+    end
 
     it "uses the same path if the Asset content is the same" do
       install_config <<-CONFIG
@@ -285,6 +315,27 @@ end
 
     asset("signup.css").should_not have_contents('Comment')
     asset("signup.css").should have_contents('.foo{font-weight:bold;}')
+  end
+
+  it "minifies CSS using the YUI Compressor using media types" do
+    install_config <<-CONFIG
+      css_asset "signup" do
+        with_options :media_type => 'print' do |print|
+          print.include "new"
+        end
+      end
+    CONFIG
+
+    write_stylesheet("new.css", <<-STYLESHEET)
+      /* Comment */
+      .foo {
+        font-weight: bold;
+      }
+    STYLESHEET
+    AssetTrip.bundle!
+
+    asset("signup.css").should_not have_contents('Comment')
+    asset("signup.css").should have_contents('@media print{.foo{font-weight:bold;}}')
   end
 
   it "raises a CompressorError if compression fails" do
