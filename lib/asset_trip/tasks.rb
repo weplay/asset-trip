@@ -1,3 +1,5 @@
+require 'asset_trip'
+
 namespace :assets do
   desc "Bundle assets"
   task :bundle => :environment do
