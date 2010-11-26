@@ -23,6 +23,9 @@ directory.
       s.files      = normalize_files(repo.ls_files.keys - repo.lib.ignored_files)
       s.test_files = normalize_files(Dir['spec/**/*.rb'] - repo.lib.ignored_files)
 
+      s.add_dependency 'popen4'
+      s.add_dependency 'activesupport', '~> 2.2'
+
       s.has_rdoc = true
       s.extra_rdoc_files = %w[History.txt README.rdoc MIT-LICENSE.txt]
     end

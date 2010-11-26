@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bryan Helmkamp"]
-  s.date = %q{2009-11-09}
+  s.date = %q{2010-11-26}
   s.description = %q{Asset Trip bundles JavaScript and CSS files at deploy time. The assets are
 then served from a Git-esque object store in the application's public
 directory.}
@@ -27,8 +27,10 @@ directory.}
     "init.rb",
     "lib/asset_trip.rb",
     "lib/asset_trip/asset.rb",
+    "lib/asset_trip/asset_file.rb",
     "lib/asset_trip/compressor.rb",
     "lib/asset_trip/config.rb",
+    "lib/asset_trip/dir_extensions.rb",
     "lib/asset_trip/file_writer.rb",
     "lib/asset_trip/helper.rb",
     "lib/asset_trip/javascript.rb",
@@ -40,6 +42,7 @@ directory.}
     "lib/asset_trip/ssl_stylesheet.rb",
     "lib/asset_trip/stylesheet.rb",
     "lib/asset_trip/url_rewriter.rb",
+    "lib/tasks/asset_trip.rake",
     "spec/asset_trip/asset_spec.rb",
     "spec/asset_trip/compressor_spec.rb",
     "spec/asset_trip/config_spec.rb",
@@ -66,12 +69,11 @@ directory.}
     "spec/support/matchers.rb",
     "spec/support/path_utils.rb",
     "spec/support/sandbox_helper.rb",
-    "tasks/asset_trip.rake",
     "vendor/yuicompressor-2.4.2.jar"
   ]
   s.homepage = %q{http://github.com/brynary/asset-trip}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{Rails asset bundling plugin that will expand your mind}
   s.test_files = [
     "spec/asset_trip/asset_spec.rb",
@@ -101,9 +103,15 @@ directory.}
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<popen4>, [">= 0"])
+      s.add_runtime_dependency(%q<activesupport>, ["~> 2.2"])
     else
+      s.add_dependency(%q<popen4>, [">= 0"])
+      s.add_dependency(%q<activesupport>, ["~> 2.2"])
     end
   else
+    s.add_dependency(%q<popen4>, [">= 0"])
+    s.add_dependency(%q<activesupport>, ["~> 2.2"])
   end
 end
